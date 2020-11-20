@@ -1,0 +1,15 @@
+{
+  "name": "natours---backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sujay Jami",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sujay99999/natours---backend/issues"
+  },
+  "homepage": "https://github.com/Sujay99999/natours---backend#readme"
+}
