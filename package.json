@@ -2,14 +2,21 @@
   "name": "natours---backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sujay99999/natours---backend.git"
   },
   "author": "Sujay Jami",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Sujay99999/natours---backend/issues"
   },
-  "homepage": "https://github.com/Sujay99999/natours---backend#readme"
+  "homepage": "https://github.com/Sujay99999/natours---backend#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
