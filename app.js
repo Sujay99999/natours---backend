@@ -1,25 +1,26 @@
+// THIS APP.JS IS MAINLY USED FOR IMPLEMENTING THE EXPRESS AND MIDDLEWARE FUNCTIONS
+
 // Core modules are imported first, then the 3rd part modules
-const fs = require('fs');
 const express = require('express');
+const morgan = require('morgan');
+
+// File modules --- we cant use dirname
+const tourRouter = require('./routes/tourRoutes');
+const userRouter = require('./routes/userRoutes');
 
 const app = express();
-const port = 3000;
+//Middleware functions
 
-//Files
-const toursdata = JSON.parse(
-  fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
-);
+//General middleware functions
+app.use(morgan('dev'));
+app.use(express.json());
+app.use((req, res, next) => {
+  console.log('this is the middleware function talking');
+  next();
+});
 
-//GET requests
-app.get('/api/v1/tours', (req, res) => {
-  res.status(200).json({
-    status: 200,
-    result: toursdata.length,
-    data: {
-      tours: toursdata,
-    },
-  });
-});
-app.listen(port, () => {
-  console.log(`the port ${port} is listening`);
-});
+//Router level middleware functions
+app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', userRouter);
+
+module.exports = app;
