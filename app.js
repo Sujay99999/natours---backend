@@ -1,7 +1,6 @@
 // THIS APP.JS IS MAINLY USED FOR IMPLEMENTING THE EXPRESS AND MIDDLEWARE FUNCTIONS
 
 // Core modules are imported first, then the 3rd part modules
-const dotenv = require('dotenv');
 const express = require('express');
 const morgan = require('morgan');
 
@@ -9,12 +8,8 @@ const morgan = require('morgan');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
-dotenv.config({
-  path: `./config.env`,
-});
 const app = express();
 //Middleware functions
-console.log(process.env.NODE_ENV);
 
 //General middleware functions
 if (process.env.NODE_ENV === 'development') {
