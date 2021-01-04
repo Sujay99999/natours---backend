@@ -8,11 +8,11 @@ const tourController = require('./../controllers/tourControllers');
 
 const router = express.Router();
 
-router.param('id', tourController.checkIDTours);
+// router.param('id', tourController.checkIDTours);
 router
   .route('/')
   .get(tourController.getAllTours)
-  .post(tourController.checkCreateTour, tourController.createTour);
+  .post(tourController.createTour);
 router
   .route('/:id')
   .get(tourController.getTour)

@@ -1,5 +1,6 @@
-// THIS SERVER.JS IS MAINLY USED FOR IMPLEMENTING THE FUNCTIONS RELATED TO SERVER
 const dotenv = require('dotenv');
+const fs = require('fs');
+const Tour = require('./models/tourModel');
 const mongoose = require('mongoose');
 
 dotenv.config({
@@ -7,9 +8,11 @@ dotenv.config({
 });
 console.log(process.env.NODE_ENV);
 
-//File modules
-const app = require('./app');
-
+const tourArr = JSON.parse(
+  fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`, {
+    encoding: 'utf8',
+  })
+);
 const DBString = process.env.DATABASE.replace(
   '<password>',
   process.env.DATABASE_PASSWORD
@@ -29,7 +32,12 @@ mongoose
     console.log('error in DB connection');
   });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`the port ${port} is listening`);
-});
+const importfunction = async () => {
+  //console.log(tourArr);
+  const tours = await Tour.create(tourArr);
+  console.log('import function is successfull');
+};
+
+if (process.argv[2] === 'fuckyou') {
+  importfunction();
+}
