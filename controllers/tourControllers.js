@@ -5,7 +5,7 @@ const fs = require('fs');
 
 //other imported files
 const Tour = require(`./../models/tourModel`);
-const APIFeatures = require(`./../models/APIFeatures`);
+const APIFeatures = require(`../utils/APIFeatures`);
 
 //Callback FUnctions
 
@@ -14,6 +14,42 @@ exports.top5cheap = (req, res, next) => {
   req.query.limit = 5;
   req.query.feilds = 'name,price,duration';
   next();
+};
+
+exports.getStats = async (req, res) => {
+  try {
+    const data = await Tour.aggregate([
+      {
+        //stage 1: to take the inputof the tours, which only have ratingsavg greater than 4.5
+        $match: { ratingsAverage: { $gte: 4.5 } },
+      },
+      {
+        //stage 2: to group the tours based on the difficulty
+        $group: {
+          _id: '$difficulty',
+          totalTours: { $sum: 1 },
+          totalRatings: { $sum: '$ratingsQuantity' },
+          totalRatingsAverage: { $sum: '$ratingsAverage' },
+          toursArr: { $push: '$name' },
+          priceAverage: { $avg: '$price' },
+        },
+      },
+      {
+        //stage 3: to sort the groups based on price
+        $sort: { priceAverage: 1 },
+      },
+    ]);
+    res.status(200).json({
+      status: 'success',
+      data,
+    });
+  } catch (err) {
+    next(new AppError(400, err.message));
+    // res.status(400).json({
+    //   status: 'fail',
+    //   message: err,
+    // });
+  }
 };
 
 exports.getAllTours = async (req, res) => {
@@ -31,10 +67,11 @@ exports.getAllTours = async (req, res) => {
       data: tours,
     });
   } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err,
-    });
+    next(new AppError(400, err.message));
+    // res.status(400).json({
+    //   status: 'fail',
+    //   message: err,
+    // });
   }
 };
 
@@ -46,10 +83,11 @@ exports.getTour = async (req, res) => {
       data: tour,
     });
   } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err,
-    });
+    next(new AppError(400, err.message));
+    // res.status(400).json({
+    //   status: 'fail',
+    //   message: err,
+    // });
   }
 };
 
@@ -62,10 +100,11 @@ exports.createTour = async (req, res) => {
       data: newTour,
     });
   } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err,
-    });
+    next(new AppError(400, err.message));
+    // res.status(400).json({
+    //   status: 'fail',
+    //   message: err,
+    // });
   }
 };
 
@@ -80,10 +119,11 @@ exports.updateTour = async (req, res) => {
       data: updatedTour,
     });
   } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err,
-    });
+    next(new AppError(400, err.message));
+    // res.status(400).json({
+    //   status: 'fail',
+    //   message: err,
+    // });
   }
 };
 
@@ -95,10 +135,11 @@ exports.deleteTour = async (req, res) => {
       message: 'Tour deleted',
     });
   } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err,
-    });
+    next(new AppError(400, err.message));
+    // res.status(400).json({
+    //   status: 'fail',
+    //   message: err,
+    // });
   }
 };
 

@@ -5,6 +5,9 @@ const express = require('express');
 const morgan = require('morgan');
 
 // File modules --- we cant use dirname
+const AppError = require('./utils/AppError');
+const globalErrorHandler = require('./controllers/errorControllers');
+
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
@@ -25,5 +28,16 @@ app.use((req, res, next) => {
 //Router level middleware functions
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+app.all('*', (req, res, next) => {
+  next(new AppError(404, `the route ${req.originalUrl} is not defined`));
+  // res.status(500).json({
+  //   status: 'fail',
+  //   message: `the route ${req.originalUrl} is not defined`,
+  // });
+});
+
+//global error handler
+app.use(globalErrorHandler);
 
 module.exports = app;
