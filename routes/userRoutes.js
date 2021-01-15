@@ -5,8 +5,12 @@ const express = require('express');
 
 //File Modules
 const userController = require('./../controllers/userControllers');
+const authController = require('./../controllers/authControllers');
 
 const router = express.Router();
+
+//this endpoint requires only one http request that is post
+router.post('/signup', authController.signup);
 
 router
   .route('/')
