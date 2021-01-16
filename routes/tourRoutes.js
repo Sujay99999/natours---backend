@@ -5,6 +5,8 @@ const express = require('express');
 
 //File modules
 const tourController = require('./../controllers/tourControllers');
+const authController = require('./../controllers/authControllers');
+const AppError = require('./../utils/AppError');
 
 const router = express.Router();
 
@@ -15,7 +17,8 @@ router
 router.route('/get-stats').get(tourController.getStats);
 router
   .route('/')
-  .get(tourController.getAllTours)
+  //we are adding a middleware that verifies the user prior to accessing the protected route
+  .get(authController.verify, tourController.getAllTours)
   .post(tourController.createTour);
 router
   .route('/:id')

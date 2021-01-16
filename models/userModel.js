@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
     type: 'string',
     required: [true, 'Every user must have a password.'],
     minlength: 8,
+    select: false,
   },
   confirmPassword: {
     type: 'string',
@@ -33,6 +34,9 @@ const userSchema = new mongoose.Schema({
       },
       message: 'The inputted passwords are not same.',
     },
+  },
+  passwordChangedAt: {
+    type: 'Date',
   },
 });
 
@@ -48,6 +52,19 @@ userSchema.pre('save', async function (next) {
   //as this is a middleware, we must pass on to the next function
   next();
 });
+
+//creating an instance method of the schema, which is present on each of the doc created
+userSchema.methods.checkPassword = async (plainPass, hashPass) => {
+  //this function returns true if the passwords are correct
+  return await bcrypt.compare(plainPass, hashPass);
+};
+
+userSchema.methods.checkPasswordChangedAt = function (JWTTimeStamp) {
+  if (this.passwordChangedAt) {
+    return JWTTimeStamp < parseInt(this.passwordChangedAt.getTime() / 1000);
+  }
+  return false;
+};
 
 const User = mongoose.model('user', userSchema);
 

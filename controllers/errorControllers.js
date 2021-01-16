@@ -17,6 +17,18 @@ module.exports = (err, req, res, next) => {
     err.statusCode = 404;
     err.status = 'fail';
   }
+  //3)json web token error
+  if (err.name === 'JsonWebTokenError') {
+    err.isOperational = true;
+    err.statusCode = 404;
+    err.status = 'fail';
+  }
+  //4)json we token expiry error
+  if (err.name === 'TokenExpiredError') {
+    err.isOperational = true;
+    err.statusCode = 404;
+    err.status = 'fail';
+  }
 
   if (process.env.NODE_ENV === 'production') {
     // In production, the client needs to more info about the error if its operational,
