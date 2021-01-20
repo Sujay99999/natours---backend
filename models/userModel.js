@@ -1,30 +1,37 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
   name: {
-    type: 'string',
+    type: String,
     required: [true, 'Every user must contain a name.'],
   },
   email: {
-    type: 'string',
+    type: String,
     required: [true, 'Every user must have an email,'],
     unique: true,
     lowercase: true,
     validate: [validator.isEmail, 'Please provide an valid email.'],
   },
   photo: {
-    type: 'string',
+    type: String,
+  },
+  role: {
+    //to make a user to admin, he must go to db and perform the explicit operation over there
+    type: String,
+    enum: ['user', 'admin', 'guide', 'lead-guide'],
+    default: 'user',
   },
   password: {
-    type: 'string',
+    type: String,
     required: [true, 'Every user must have a password.'],
     minlength: 8,
     select: false,
   },
   confirmPassword: {
-    type: 'string',
+    type: String,
     required: [true, 'Please confirm the password.'],
     //the this keyword only works on save and create functions of the model
     validate: {
@@ -36,11 +43,18 @@ const userSchema = new mongoose.Schema({
     },
   },
   passwordChangedAt: {
-    type: 'Date',
+    type: Date,
+  },
+  passwordResetToken: {
+    type: String,
+  },
+  passwordResetTokenExpiryTime: {
+    type: Date,
   },
 });
 
-//this is something which must be done prior to creating or updating any document, hence it must be a pre save hook
+//this is something which must be done after we are creating or updating any document and prior to saving
+//the document on the database hence it must be a pre save hook
 userSchema.pre('save', async function (next) {
   //1)This pre hoook must only work when are saving or updating the password
   if (this.isModified('password')) {
@@ -53,17 +67,31 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+//Instance Methods
 //creating an instance method of the schema, which is present on each of the doc created
 userSchema.methods.checkPassword = async (plainPass, hashPass) => {
   //this function returns true if the passwords are correct
   return await bcrypt.compare(plainPass, hashPass);
 };
 
-userSchema.methods.checkPasswordChangedAt = function (JWTTimeStamp) {
+userSchema.methods.checkPasswordChangedAtProperty = function (JWTTimeStamp) {
   if (this.passwordChangedAt) {
     return JWTTimeStamp < parseInt(this.passwordChangedAt.getTime() / 1000);
   }
   return false;
+};
+
+//creating a password reset token using crypto module
+userSchema.methods.createResetPasswordToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+  this.passwordResetTokenExpiryTime = Date.now() + 10 * 60 * 1000;
+
+  //We must return the orginal token, to be sent thru mail
+  return resetToken;
 };
 
 const User = mongoose.model('user', userSchema);

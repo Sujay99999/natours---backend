@@ -117,7 +117,7 @@ exports.deleteTour = async (req, res, next) => {
     if (!deletedTour) {
       return next(new AppError('The id is invalid', 404));
     }
-    res.status(200).json({
+    res.status(204).json({
       status: 'success',
       message: 'Tour deleted',
     });

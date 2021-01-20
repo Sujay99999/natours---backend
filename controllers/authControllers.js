@@ -1,7 +1,9 @@
 const util = require('util');
+const crypto = require('crypto');
 const User = require('./../models/userModel');
 const jwt = require('jsonwebtoken');
 const AppError = require('./../utils/AppError');
+const emailjs = require('./../utils/email');
 
 //this function creates a new jwt token based on the payload as id: <given parameter> and returns it
 const createToken = (id) => {
@@ -100,6 +102,8 @@ exports.verify = async (req, res, next) => {
     }
 
     //3)verify if the token is real
+    //promisify is a function that takes a function having the last parameter as the callback
+    // and converts it into a promise.
     const decodedPayload = await util.promisify(jwt.verify)(
       token,
       process.env.JWT_SECRET
@@ -116,7 +120,7 @@ exports.verify = async (req, res, next) => {
 
     //5)check if the password has been changed
     // this might be the case when the jwt is extracted and used with another user -- very imp
-    if (verifiedUser.checkPasswordChangedAt(decodedPayload.iat)) {
+    if (verifiedUser.checkPasswordChangedAtProperty(decodedPayload.iat)) {
       next(
         new AppError(401, 'The password has been changed, Please log in again.')
       );
@@ -126,6 +130,100 @@ exports.verify = async (req, res, next) => {
     req.user = verifiedUser;
 
     next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.authorize = (rolesArr) => {
+  return (req, res, next) => {
+    //we need to check if the current user's role in present in the authorized roles array
+    //else the particular user is denied access
+    if (!rolesArr.includes(req.user.role)) {
+      return next(
+        new AppError(403, 'You are denied access to perform this action.')
+      );
+    }
+
+    //If all good, then we just pass on to the next middleware
+    next();
+  };
+};
+
+//This is a function that sends reset token url to the email of the user
+exports.forgetPassword = async (req, res, next) => {
+  try {
+    //1) obtain the email from the body and check whther the user is in the database
+    const { email } = req.body;
+    const lostuser = await User.findOne({ email });
+    if (!lostuser) {
+      return next(
+        new AppError(404, 'The user with the email address, does not exist.')
+      );
+    }
+    //2) if the user exists, create a new reset token, saving the hashed version on the db
+    const resetToken = lostuser.createResetPasswordToken();
+
+    //3)save the document to the db as we did update the document
+    //we need to turn off the validation as the curr doc, which we are saving does not have the confirmpass feild
+    await lostuser.save({ validateBeforeSave: false });
+
+    //4)send the reset token to the email provided by the user
+    const resetURL = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/resetPassword/${resetToken}`;
+    try {
+      await emailjs(req.body.email, lostuser.name, resetURL);
+    } catch (err) {
+      lostuser.passwordResetToken = undefined;
+      lostuser.passwordResetTokenExpiryTime = undefined;
+      await lostuser.save({ validateBeforeSave: false });
+      return next(
+        new AppError(500, 'Something has gone wrong with the emailing process.')
+      );
+    }
+
+    res.status(200).json({
+      status: 'success',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+//This is a function that checks the reset token and updates with the new password respectively
+exports.resetPassword = async (req, res, next) => {
+  try {
+    //1)Check whether there is an user based on the token provided as a parameter
+    //2)if the user exists, the check for the expiry of the token
+    const resetToken = req.params.token;
+    const hashedResetTokenAnother = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+    const verifiedUser = await User.findOne({
+      passwordResetToken: hashedResetTokenAnother,
+      passwordResetTokenExpiryTime: { $gte: Date.now() },
+    });
+
+    if (!verifiedUser) {
+      return next(new AppError(404, 'The token is not valid or has expired.'));
+    }
+    //3)update the password and confirmPassword feild
+    console.log(req.body);
+    verifiedUser.password = req.body.password;
+    verifiedUser.confirmPassword = req.body.confirmPassword;
+    verifiedUser.passwordResetToken = undefined;
+    verifiedUser.passwordResetTokenExpiryTime = undefined;
+    await verifiedUser.save();
+    //4)update the changedPasswordAt property of the user
+    /////////////////////////////////////////////////////
+    //5)log the user in and send back the jwt token
+    const token = createToken(verifiedUser._id);
+    res.status(200).json({
+      status: 'success',
+      token,
+    });
   } catch (err) {
     next(err);
   }

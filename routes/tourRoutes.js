@@ -6,7 +6,7 @@ const express = require('express');
 //File modules
 const tourController = require('./../controllers/tourControllers');
 const authController = require('./../controllers/authControllers');
-const AppError = require('./../utils/AppError');
+// const AppError = require('./../utils/AppError');
 
 const router = express.Router();
 
@@ -24,6 +24,11 @@ router
   .route('/:id')
   .get(tourController.getTour)
   .patch(tourController.updateTour)
-  .delete(tourController.deleteTour);
+  //we need to autthenticate and also authorize the user for this route action
+  .delete(
+    authController.verify,
+    authController.authorize(['admin', 'guide']),
+    tourController.deleteTour
+  );
 
 module.exports = router;
