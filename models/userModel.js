@@ -51,10 +51,18 @@ const userSchema = new mongoose.Schema({
   passwordResetTokenExpiryTime: {
     type: Date,
   },
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
+//Pre save hooks
+//its is an middleware function, that takes in the parameter next
 //this is something which must be done after we are creating or updating any document and prior to saving
 //the document on the database hence it must be a pre save hook
+
 userSchema.pre('save', async function (next) {
   //1)This pre hoook must only work when are saving or updating the password
   if (this.isModified('password')) {
@@ -64,6 +72,23 @@ userSchema.pre('save', async function (next) {
     this.confirmPassword = undefined;
   }
   //as this is a middleware, we must pass on to the next function
+  next();
+});
+
+userSchema.pre('save', function (next) {
+  //we should skip the middleware if the document that is saved is new one or in the other case
+  //where we are only updating feilds other than the password field
+  if (this.isNew || !this.isModified('password')) {
+    next();
+  } else {
+    this.passwordChangedAt = Date.now() - 1000;
+    next();
+  }
+});
+
+//Pre Middleware queries
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } }).select('-__v');
   next();
 });
 

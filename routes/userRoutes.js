@@ -9,12 +9,21 @@ const authController = require('./../controllers/authControllers');
 
 const router = express.Router();
 
-//this endpoint requires only one http request that is post
+//these endpoints requires only one http request that is post
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 
 router.post('/forgetPassword', authController.forgetPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
+
+router.patch('/updateMe', authController.verify, userController.updateMe);
+router.delete('/deleteMe', authController.verify, userController.deleteMe);
+
+router.patch(
+  '/updateMyPassword',
+  authController.verify,
+  authController.updateMyPassword
+);
 
 router
   .route('/')

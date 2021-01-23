@@ -37,6 +37,7 @@ mongoose
   });
 
 const port = process.env.PORT || 3000;
+//as we are not explicitly creating a server using http.createServer, we listen to the app directly
 const server = app.listen(port, () => {
   console.log(`the port ${port} is listening`);
 });

@@ -63,6 +63,51 @@ const tourSchema = mongoose.Schema({
   },
   startDates: [Date],
   price: Number,
+
+  startLocation: {
+    type: {
+      type: String,
+      default: 'Point',
+      enum: {
+        values: ['Point'],
+        message: 'The Location must always be a Point',
+      },
+    },
+    coordinates: [
+      {
+        type: Number,
+      },
+    ],
+    address: {
+      type: String,
+    },
+    description: {
+      type: String,
+    },
+  },
+  locations: [
+    {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: {
+          values: ['Point'],
+          message: 'The Location must always be a Point',
+        },
+      },
+      coordinates: [
+        {
+          type: Number,
+        },
+      ],
+      address: {
+        type: String,
+      },
+      description: {
+        type: String,
+      },
+    },
+  ],
 });
 
 const Tour = mongoose.model('tour', tourSchema);

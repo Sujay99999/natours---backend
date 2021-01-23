@@ -12,6 +12,32 @@ const createToken = (id) => {
   });
 };
 
+const sendBackToken = (res, statusCode, token, user) => {
+  //1)we are leaking the password i.e. encrypted form, even though it is projected out, beacuse it is a result
+  //  of creating the doc to the database, but not reading it from DB and we must remove it
+  user.password = undefined;
+  user.active = undefined;
+
+  //2)sending back the jwt token as a cookie to
+  const cookieOptions = {
+    expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRY_TIME),
+    httpOnly: true,
+  };
+
+  if (process.env.NODE_ENV === 'production') {
+    cookieOptions.secure = true;
+  }
+  res.cookie('jwtToken', token, cookieOptions);
+
+  //3)sending back the response
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
+  });
+};
 //when we signup a new user, there
 exports.signup = async (req, res, next) => {
   try {
@@ -24,20 +50,11 @@ exports.signup = async (req, res, next) => {
       confirmPassword: req.body.confirmPassword,
       passwordChangedAt: req.body.passwordChangedAt,
     });
-    //2)we are leaking the password i.e. encrypted form, even though it is projected out, beacuse it is a result
-    //  of creating the doc to the database, but not reading it from DB and we must remove it
-    newUser.password = undefined;
 
-    //3)we must sign a new JWT token and send it back to the client
+    //2)we must sign a new JWT token and send it back to the client
     const token = createToken(newUser._id);
     //3)send back the token and the newuser back to the client
-    res.status(201).json({
-      status: 'success',
-      token,
-      data: {
-        user: newUser,
-      },
-    });
+    sendBackToken(res, 201, token, newUser);
   } catch (err) {
     next(err);
   }
@@ -74,10 +91,7 @@ exports.login = async (req, res, next) => {
 
     //5)if all good, send the token back to the user
     const token = createToken(user._id);
-    res.status(200).json({
-      status: 'success',
-      token,
-    });
+    sendBackToken(res, 201, token, user);
   } catch (err) {
     next(err);
   }
@@ -127,6 +141,7 @@ exports.verify = async (req, res, next) => {
     }
 
     //6)make sure to add the user to the req object, for further use
+    //  the saved user doesnt have the password feild
     req.user = verifiedUser;
 
     next();
@@ -150,7 +165,7 @@ exports.authorize = (rolesArr) => {
   };
 };
 
-//This is a function that sends reset token url to the email of the user
+//This is a function that sends reset token url to the email of the user, in the case the user is not logged in
 exports.forgetPassword = async (req, res, next) => {
   try {
     //1) obtain the email from the body and check whther the user is in the database
@@ -185,6 +200,7 @@ exports.forgetPassword = async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
+      message: 'Email has been sent successfully.',
     });
   } catch (err) {
     next(err);
@@ -192,6 +208,8 @@ exports.forgetPassword = async (req, res, next) => {
 };
 
 //This is a function that checks the reset token and updates with the new password respectively
+//it removes the password reset token and reset token expiry feilds
+
 exports.resetPassword = async (req, res, next) => {
   try {
     //1)Check whether there is an user based on the token provided as a parameter
@@ -209,21 +227,61 @@ exports.resetPassword = async (req, res, next) => {
     if (!verifiedUser) {
       return next(new AppError(404, 'The token is not valid or has expired.'));
     }
+
     //3)update the password and confirmPassword feild
-    console.log(req.body);
     verifiedUser.password = req.body.password;
     verifiedUser.confirmPassword = req.body.confirmPassword;
     verifiedUser.passwordResetToken = undefined;
     verifiedUser.passwordResetTokenExpiryTime = undefined;
-    await verifiedUser.save();
+
     //4)update the changedPasswordAt property of the user
-    /////////////////////////////////////////////////////
+    //  for this, we added a new pre save hook, that always updates the changedPasswordAt property duly
+    await verifiedUser.save();
+
     //5)log the user in and send back the jwt token
     const token = createToken(verifiedUser._id);
-    res.status(200).json({
-      status: 'success',
-      token,
-    });
+    sendBackToken(res, 200, token, verifiedUser);
+  } catch (err) {
+    next(err);
+  }
+};
+
+//This is a function for logged in users to update their passwords
+//this function is only executed after checking the json webtoken and also verifying him in the db
+exports.updateMyPassword = async (req, res, next) => {
+  try {
+    //1) obtain the current password from the req.body and check with the DB
+    const { currentPassword } = req.body;
+
+    //2)we must again obtain the user with the hashed password, beacuse, the saved user on the req object
+    //  doesnt contain the password property
+    // this also once again verifies the user in the db
+    const currentUser = await User.findById(req.user._id).select('+password');
+
+    //3)check the inputted password and the original hashed password
+    const checkCurrentPassword = await currentUser.checkPassword(
+      currentPassword,
+      currentUser.password
+    );
+    if (!checkCurrentPassword) {
+      return next(
+        new AppError(401, 'The inputted Password is wrong. PLease try again')
+      );
+    }
+
+    //4)  then, update the password and confirmPassword
+    currentUser.password = req.body.password;
+    currentUser.confirmPassword = req.body.confirmPassword;
+
+    //5) and update the passwordChangedAt feild
+    // this is a pre save hook, takes care directly
+
+    //6) save the user
+    await currentUser.save();
+
+    //7) log the user, sending back the jwt token
+    const token = createToken(currentUser._id);
+    sendBackToken(res, 201, token, currentUser);
   } catch (err) {
     next(err);
   }
