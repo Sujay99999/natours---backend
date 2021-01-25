@@ -15,6 +15,7 @@ const globalErrorHandler = require('./controllers/errorControllers');
 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
 
 const app = express();
 //Middleware functions
@@ -72,6 +73,7 @@ app.use((req, res, next) => {
 //Router level middleware functions
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(404, `the route ${req.originalUrl} is not defined`));

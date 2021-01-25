@@ -88,7 +88,8 @@ userSchema.pre('save', function (next) {
 
 //Pre Middleware queries
 userSchema.pre(/^find/, function (next) {
-  this.find({ active: { $ne: false } }).select('-__v');
+  this.find({ active: { $ne: false } });
+  //.select('-__v -passwordChangedAt');
   next();
 });
 
@@ -119,6 +120,6 @@ userSchema.methods.createResetPasswordToken = function () {
   return resetToken;
 };
 
-const User = mongoose.model('user', userSchema);
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;

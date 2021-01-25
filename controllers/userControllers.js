@@ -1,5 +1,6 @@
 //THIS IS THE CONTROLLER PAGE OF THE USERS
 const User = require('./../models/userModel');
+const APIFeatures = require(`../utils/APIFeatures`);
 const AppError = require('./../utils/AppError');
 
 //function to filter out the req.body
@@ -15,15 +16,33 @@ const filterReqBody = (originalObj, allowedFeildsArray) => {
 };
 
 //Controller functions
+
 exports.getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find();
+    const features = new APIFeatures(User.find(), req.query)
+      .filter()
+      .sort()
+      .select()
+      .pagination();
+    //console.log(featuresFinal);
+    const users = await features.query;
     res.status(200).json({
       status: 'success',
       length: users.length,
-      data: {
-        users,
-      },
+      data: users,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getMe = async (req, res, next) => {
+  try {
+    const user = await User.find(req.user._id);
+    if (!user) return next(new AppError(404, 'User not found'));
+    res.status(200).json({
+      status: 'success',
+      data: user,
     });
   } catch (err) {
     next(err);
@@ -91,11 +110,19 @@ exports.deleteMe = async (req, res, next) => {
   }
 };
 
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    result: 'Fail',
-    message: 'the route has not been defined yet',
-  });
+exports.getUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return next(new AppError(404, 'The id is invalid'));
+    }
+    res.status(200).json({
+      status: 'success',
+      data: user,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.createUser = async (req, res, next) => {
@@ -110,16 +137,40 @@ exports.createUser = async (req, res, next) => {
   }
 };
 
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    result: 'Fail',
-    message: 'the route has not been defined yet',
-  });
+exports.updateUser = async (req, res, next) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.userId,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+    if (!updatedUser) {
+      return next(new AppError(404, 'The id is invalid'));
+    }
+    res.status(200).json({
+      status: 'success',
+      data: updatedUser,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    result: 'Fail',
-    message: 'the route has not been defined yet',
-  });
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.userId);
+    if (!deletedUser) {
+      return next(new AppError(404, 'The id is invalid'));
+    }
+    res.status(204).json({
+      status: 'success',
+      message: 'User deleted',
+    });
+  } catch (err) {
+    //
+    next(err);
+  }
 };

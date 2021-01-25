@@ -68,7 +68,9 @@ exports.getAllTours = async (req, res, next) => {
 
 exports.getTour = async (req, res, next) => {
   try {
-    const tour = await Tour.findById(req.params.id);
+    //we need to populate this query only with reviews, not for all queries, which is usually done with the
+    //query middleware
+    const tour = await Tour.findById(req.params.tourId).populate('reviews');
     if (!tour) {
       return next(new AppError(404, 'The id is invalid'));
     }
@@ -95,12 +97,16 @@ exports.createTour = async (req, res, next) => {
 
 exports.updateTour = async (req, res, next) => {
   try {
-    const updatedTour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedTour = await Tour.findByIdAndUpdate(
+      req.params.tourId,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
     if (!updatedTour) {
-      return next(new AppError('The id is invalid', 404));
+      return next(new AppError(404, 'The id is invalid'));
     }
     res.status(200).json({
       status: 'success',
@@ -113,9 +119,9 @@ exports.updateTour = async (req, res, next) => {
 
 exports.deleteTour = async (req, res, next) => {
   try {
-    const deletedTour = await Tour.findByIdAndDelete(req.params.id);
+    const deletedTour = await Tour.findByIdAndDelete(req.params.tourId);
     if (!deletedTour) {
-      return next(new AppError('The id is invalid', 404));
+      return next(new AppError(404, 'The id is invalid'));
     }
     res.status(204).json({
       status: 'success',

@@ -16,21 +16,21 @@ router.post('/login', authController.login);
 router.post('/forgetPassword', authController.forgetPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
 
-router.patch('/updateMe', authController.verify, userController.updateMe);
-router.delete('/deleteMe', authController.verify, userController.deleteMe);
+router.use(authController.verify);
 
-router.patch(
-  '/updateMyPassword',
-  authController.verify,
-  authController.updateMyPassword
-);
+router.patch('/updateMe', userController.updateMe);
+router.delete('/deleteMe', userController.deleteMe);
+router.get('/me', userController.getMe);
+router.patch('/updateMyPassword', authController.updateMyPassword);
+
+router.use(authController.authorize(['admin']));
 
 router
   .route('/')
   .get(userController.getAllUsers)
   .post(userController.createUser);
 router
-  .route('/:id')
+  .route('/:userId')
   .get(userController.getUser)
   .patch(userController.updateUser)
   .delete(userController.deleteUser);
