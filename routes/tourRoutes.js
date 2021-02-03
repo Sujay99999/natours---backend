@@ -19,6 +19,7 @@ router
 router
   .route('/get-stats')
   .get(
+    authController.verify,
     authController.authorize(['admin', 'lead-guide', 'guide']),
     tourController.getStats
   );

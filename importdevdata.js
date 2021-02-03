@@ -55,8 +55,19 @@ const importUsers = async () => {
   console.log('importUsers function is successfull');
 };
 const importReviews = async () => {
-  await Review.create(reviewArr);
-  console.log('importReviews function is successfull');
+  //console.log(reviewArr);
+  try {
+    reviewPromisesArr = reviewArr.map(async (el) => {
+      await Review.create(el);
+    });
+
+    //await Review.create(reviewArr);
+    //console.log(reviewPromisesArr);
+    await Promise.all(reviewPromisesArr);
+    console.log('importReviews function is successfull');
+  } catch (err) {
+    console.log(err);
+  }
 };
 const deleteTours = async () => {
   await Tour.deleteMany();

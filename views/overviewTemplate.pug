@@ -1,0 +1,16 @@
+//- This is child page, which gets the main code such as the header and the footer from the base.pug
+//- and the part of the base page i.e block content/script/footer is being overwritten by this respective
+//- child page content
+
+
+//- in this page, we display all the tours available directly to the user
+
+extends baseTemplate
+
+block content
+    main.main
+        .card-container
+            //- Here the tours is the local passed in the res.render function
+            each tour in tours
+                include _tourCardTemplate
+                    

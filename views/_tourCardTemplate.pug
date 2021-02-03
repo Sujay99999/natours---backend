@@ -1,0 +1,53 @@
+.card
+    // CARD HEADER
+    .card__header
+        .card__picture
+            .card__picture--overlay &nbsp;
+            img.card__picture-img(src=`/img/tours/${tour.imageCover}` alt=`${tour.name}`)
+
+        h3.heading-teritiary 
+            span= tour.name
+
+    // CARD DETAILS
+    .card__details
+        //-h4.card__sub-heading= `${tour.difficulty} ${tour.duration}-day tour`
+        h4.card__sub-heading= tour.difficulty + ' ' + tour.duration + '-day tour'
+        p.card__text= tour.summary
+
+        .card__data
+            svg.card__icon
+                use(xlink:href='/img/icons.svg#icon-map-pin')
+            span= tour.startLocation.description
+
+        .card__data
+            svg.card__icon
+                use(xlink:href='/img/icons.svg#icon-calendar')
+                //- the javascript if used, must be either be on one line or specify the start of 
+                //- the line with a dash '-'
+            span= tour.startDates[0].toLocaleString('en-US', {year: 'numeric', month: 'long'})
+
+        .card__data
+            svg.card__icon
+                use(xlink:href='/img/icons.svg#icon-flag')
+            span= tour.locations.length + ' stops'
+
+        .card__data
+            svg.card__icon
+                use(xlink:href='/img/icons.svg#icon-user')
+            span= tour.maxGroupSize
+
+    // CARD FOOTER
+    .card__footer
+        p
+            span.card__footer-value= '$' + tour.price
+            //-We are using the pipe character to insert the space between two span elements
+            //- the space inserted using the pipe character is not visible directly
+            | 
+            span.card__footer-text per person
+
+        p.card__ratings
+            span.card__footer-value= tour.ratingsAverage
+            | 
+            span.card__footer-text= 'rating ( ' + tour.ratingsQuantity + ' )'
+
+        a.btn.btn--green.btn--small(href= 'tour/' + tour.name.toLowerCase().split(' ').join('-')) Details
