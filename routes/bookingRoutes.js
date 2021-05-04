@@ -21,7 +21,6 @@ router
     authController.verify,
     authController.authorize(['admin', 'lead-guide']),
     bookingController.getAllBookings
-  )
-  .post(bookingController.createBooking);
+  );
 
 module.exports = router;

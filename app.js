@@ -11,6 +11,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const cors = require('cors');
 
 // File modules --- we cant use dirname
 const AppError = require('./utils/AppError');
@@ -20,6 +21,7 @@ const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const bookingRouter = require('./routes/bookingRoutes');
+const bookingControllers = require('./controllers/bookingControllers');
 const viewRouter = require('./routes/viewRoutes');
 
 // const Booking = require('./models/BookingModel');
@@ -42,9 +44,14 @@ app.set('views', path.join(__dirname, 'views'));
 //   app.use(morgan('dev'));
 // }
 app.use(morgan('dev'));
+
+//Adding CORS support
+app.use(cors());
+//Sending options support for all routes
+app.use('*', cors());
+
 //Setting up HTTP headers
 // we need to explicitly set the option of content security policy to false to use the mapbox script
-
 app.use(
   helmet({
     contentSecurityPolicy: false,
@@ -62,6 +69,14 @@ const limiter = rateLimit({
   message: 'Too many attempts from the same IP. Please try again later',
 });
 app.use(limiter);
+
+// NOTE: This route is imple prior to using the express.json() middleware, inorder to preserve the
+// post data in its raw data, instead of converting it into the json format.
+app.post(
+  '/stripe-webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  bookingControllers.stripeWebhookCheckout
+);
 
 //Body-parser middleware functions
 app.use(express.json());
