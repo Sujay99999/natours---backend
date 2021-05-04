@@ -13,7 +13,7 @@ const createToken = (id) => {
 };
 
 // in this function, we are craeting a cookie as well as sending a response back to the server
-const sendBackToken = (res, statusCode, token, user) => {
+const sendBackToken = (req, res, statusCode, token, user) => {
   //1)we are leaking the password i.e. encrypted form, even though it is projected out, beacuse it is a result
   //  of creating the doc to the database, but not reading it from DB and we must remove it
   user.password = undefined;
@@ -61,7 +61,7 @@ exports.signup = async (req, res, next) => {
     await new Email(newUser, url).sendWelcomeEmail();
 
     //4)send back the token and the newuser back to the client
-    sendBackToken(res, 201, token, newUser);
+    sendBackToken(req, res, 201, token, newUser);
   } catch (err) {
     next(err);
   }
@@ -101,7 +101,7 @@ exports.login = async (req, res, next) => {
 
     //5)if all good, send the response back to the user containing the token as well as the logged in user
     const token = createToken(user._id);
-    sendBackToken(res, 201, token, user);
+    sendBackToken(req, res, 201, token, user);
   } catch (err) {
     next(err);
   }
@@ -332,7 +332,7 @@ exports.resetPassword = async (req, res, next) => {
 
     //5)log the user in and send back the jwt token
     const token = createToken(verifiedUser._id);
-    sendBackToken(res, 200, token, updatedUser);
+    sendBackToken(req, res, 200, token, updatedUser);
   } catch (err) {
     next(err);
   }
@@ -374,7 +374,7 @@ exports.updateMyPassword = async (req, res, next) => {
 
     //7) log the user, sending back the jwt token
     const token = createToken(currentUser._id);
-    sendBackToken(res, 201, token, currentUser);
+    sendBackToken(req, res, 201, token, currentUser);
   } catch (err) {
     next(err);
   }
