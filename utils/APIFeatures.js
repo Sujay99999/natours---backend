@@ -16,6 +16,7 @@ class APIFeatures {
     filterStr = filterStr.replace(/\b(gt|gte|lt|lte|in)\b/g, '$$' + '$1');
 
     //console.log(JSON.parse(filterStr));
+    // We are chaining a new query, to the previous query that is present in this.query
     this.query = this.query.find(JSON.parse(filterStr));
     //console.log(this);
     return this;

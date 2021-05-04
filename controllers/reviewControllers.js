@@ -6,6 +6,7 @@ const AppError = require('./../utils/AppError');
 //particular tour using the tourId present in the URL
 exports.getAllReviews = async (req, res, next) => {
   try {
+    // This logic is only for filtering out the reviews based on the tourid if present
     let filterObj = {};
     if (req.params.tourId) {
       filterObj = { tourRef: req.params.tourId };

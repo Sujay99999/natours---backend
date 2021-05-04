@@ -11,6 +11,9 @@ block content
     main.main
         .card-container
             //- Here the tours is the local passed in the res.render function
-            each tour in tours
-                include _tourCardTemplate
+            if tours.length > 0
+                each tour in tours
+                    include _tourCardTemplate
+            else 
+                h3 No tours available right now
                     

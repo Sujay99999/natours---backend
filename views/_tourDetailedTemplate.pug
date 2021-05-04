@@ -1,6 +1,11 @@
 //- the local that is passed onto this file is 'tour'
 
+
+
+
 - var tourNumber = tour.imageCover.split('-')[1]
+
+//- Mixins
 mixin overviewStats(label ,icon, text)
     .overview-box__detail
         svg.overview-box__icon
@@ -11,12 +16,15 @@ mixin overviewStats(label ,icon, text)
 mixin guideStats(img, label, text)
     .overview-box__detail
         img.overview-box__img(src= `/img/users/${img}`, alt= label)
-        span.overview-box__label= label.split('-').join(' ')
+        - if(label === 'lead-guide')
+            span.overview-box__label= 'Lead Guide'
+        - if(label === 'guide')
+            span.overview-box__label= 'Tour Guide' 
         span.overview-box__text= text
 
 mixin tourPictures(img, text)
     .picture-box
-        img.picture-box__img.picture-box__img--1(src=`/img/tours/tour-${tourNumber}-${img}.jpg`, alt= text)
+        img.picture-box__img(src=`/img/tours/tour-${tourNumber}-${img}.jpg`, alt= text, class=`picture-box__img--${img}`)
 
 mixin reviewCard(img, name, reviewText, rating)
     .reviews__card
@@ -25,24 +33,18 @@ mixin reviewCard(img, name, reviewText, rating)
             h6.reviews__user= name
         p.reviews__text= reviewText
         .reviews__rating
-            - const ratingTrue = rating
-            - const ratingFalse = 5-rating
-            while ratingTrue >= 0
+            - let ratingTrue = rating
+            - let ratingFalse = 5-rating
+            while ratingTrue > 0
+                - ratingTrue--
                 svg.reviews__star.reviews__star--active
                     use(xlink:href='/img/icons.svg#icon-star')
-                ratingTrue--
-            while ratingFalse >= 0
-                svg.reviews__star.reviews__star
+            while ratingFalse > 0
+                - ratingFalse--
+                svg.reviews__star.reviews__star--inactive
                     use(xlink:href='/img/icons.svg#icon-star')
-                ratingFalse--   
-            //- svg.reviews__star.reviews__star--active
-            //-     use(xlink:href='/img/icons.svg#icon-star')
-            //- svg.reviews__star.reviews__star--active
-            //-     use(xlink:href='/img/icons.svg#icon-star')
-            //- svg.reviews__star.reviews__star--active
-            //-     use(xlink:href='/img/icons.svg#icon-star')
-            //- svg.reviews__star.reviews__star--active
-            //-     use(xlink:href='/img/icons.svg#icon-star')
+              
+
 
 
 section.section-header
@@ -57,7 +59,7 @@ section.section-header
             .heading-box__detail
                 svg.heading-box__icon
                     use(xlink:href='/img/icons.svg#icon-clock')
-                span.heading-box__text= tour.duration + 'days'
+                span.heading-box__text= tour.duration + ' days'
             .heading-box__detail
                 svg.heading-box__icon
                     use(xlink:href='/img/icons.svg#icon-map-pin')
@@ -71,7 +73,7 @@ section.section-description
                 +overviewStats( 'Next date','calendar', 'August 2021')
                 +overviewStats( 'Difficulty','trending-up', tour.difficulty)
                 +overviewStats( 'Participants','user', tour.maxGroupSize + ' people')
-                +overviewStats( 'Rating','star', tour.ratingsAverage + '/ 5')
+                +overviewStats( 'Rating','star', tour.ratingsAverage + ' / 5')
 
 
             .overview-box__group
@@ -82,24 +84,24 @@ section.section-description
 
     .description-box
         h2.heading-secondary.ma-bt-lg= 'About ' +  tour.name
-        p.description__text= tour.summary
-        p.description__text= tour.description
+        - paragraphs = tour.description.split('\n');
+        p.description__text= paragraphs[0]
+        p.description__text= paragraphs[1]
 
 section.section-pictures
     +tourPictures(1, tour.name + ' 1')
     +tourPictures(2, tour.name + ' 2')
     +tourPictures(3, tour.name + ' 3')
     
-
 section.section-map
-    #map
+    - const locationsStr =  JSON.stringify(tour.locations)
+    #map(data-locations= locationsStr)
 
 section.section-reviews
     .reviews
         each review in tour.reviews
             +reviewCard(img, review.userRef.name, review.review, review.rating)
         
-
 section.section-cta
     .cta
         .cta__img.cta__img--logo
@@ -108,5 +110,9 @@ section.section-cta
         img.cta__img.cta__img--2(src=`/img/tours/tour-${tourNumber}-1.jpg`, alt= tour.name)
         .cta__content
             h2.heading-secondary What are you waiting for?
-            p.cta__text 10 days. 1 adventure. Infinite memories. Make it yours today!
-            button.btn.btn--green.span-all-rows Book tour now!
+            p.cta__text= tour.duration + ' days. 1 adventure. Infinite memories. Make it yours today!'
+
+            if user
+                a.btn.btn--green.span-all-rows#book-tour(data-tour-id= tour.id) Book tour now!
+            else
+                button.btn.btn--green.span-all-rows Log In to book the Tour!

@@ -4,9 +4,12 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon server.js",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
     "start:prod": "SET NODE_ENV=production & nodemon server.js",
     "debug": "ndb server.js",
+    "watch:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js",
+    "build:js": "parcel build ./public/js/index.js --out-dir ./public/js --out-file bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,19 +23,28 @@
   },
   "homepage": "https://github.com/Sujay99999/natours---backend#readme",
   "dependencies": {
+    "axios": "^0.21.1",
     "bcrypt": "^5.0.0",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.5",
+    "core-js": "^3.11.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-mongo-sanitize": "^2.0.2",
     "express-rate-limit": "^5.2.3",
     "helmet": "^4.4.1",
     "hpp": "^0.2.3",
+    "html-to-text": "^7.1.1",
     "jsonwebtoken": "^8.5.1",
     "mailgen": "^2.0.14",
     "mongoose": "^5.10.16",
     "morgan": "^1.10.0",
+    "multer": "^1.4.2",
     "nodemailer": "^6.4.17",
     "pug": "^3.0.0",
+    "regenerator-runtime": "^0.13.7",
+    "sharp": "^0.28.1",
+    "stripe": "^8.145.0",
     "validator": "^13.5.2",
     "xss-clean": "^0.1.1"
   },
@@ -46,6 +58,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "parcel-bundler": "^1.12.5",
     "prettier": "^2.2.0"
   },
   "engines": {

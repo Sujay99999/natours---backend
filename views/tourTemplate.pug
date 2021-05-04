@@ -4,7 +4,10 @@ extends baseTemplate
 //- This is child page, which gets the main code such as the header and the footer from the base.pug
 //- and the part of the base page i.e block content/script/footer is being overwritten by this respective
 //- child page content
-
-
+block append head
+    script( src='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js')
+    link( href='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css' rel='stylesheet')
+    
 block content
     include _tourDetailedTemplate
+

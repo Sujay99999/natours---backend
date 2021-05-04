@@ -9,6 +9,8 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
+const compression = require('compression');
 
 // File modules --- we cant use dirname
 const AppError = require('./utils/AppError');
@@ -17,7 +19,10 @@ const globalErrorHandler = require('./controllers/errorControllers');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const bookingRouter = require('./routes/bookingRoutes');
 const viewRouter = require('./routes/viewRoutes');
+
+// const Booking = require('./models/BookingModel');
 
 const app = express();
 
@@ -30,12 +35,18 @@ app.set('views', path.join(__dirname, 'views'));
 
 //General middleware functions
 //Logging middleware function
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
-
+// if (process.env.NODE_ENV === 'development') {
+//   app.use(morgan('dev'));
+// }
+app.use(morgan('dev'));
 //Setting up HTTP headers
-app.use(helmet());
+// we need to explicitly set the option of content security policy to false to use the mapbox script
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 
 //Setting up rate limiter middleware
 const limiter = rateLimit({
@@ -52,6 +63,9 @@ app.use(limiter);
 //Body-parser middleware functions
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+//Cookie parser middleware
+app.use(cookieParser());
 
 //Data sanitizaton against NOSQL query injection attacks
 app.use(mongoSanitize());
@@ -73,20 +87,46 @@ app.use(
   })
 );
 
+//Compression
+app.use(compression());
+
 //Custom middleware function
-app.use((req, res, next) => {
-  console.log('this is the middleware function talking');
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log('this is the middleware function talking');
+//   console.log(req.cookies.jwtToken);
+//   next();
+// });
 
 //Router level middleware functions
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/bookings', bookingRouter);
+// app.use('/api/v1/random-booking', async (req, res, next) => {
+//   try {
+//     const newBooking = await Booking.create({
+//       userRef: '5c8a23c82f8fb814b56fa18d',
+//       tourRef: '5c88fa8cf4afda39709c2955',
+//       price: 100,
+//     });
+//     const allBookings = await Booking.find({
+//       userRef: '5c8a23c82f8fb814b56fa18d',
+//     });
+//     res.status(200).json({
+//       status: 'success',
+//       data: { newBooking, allBookings },
+//     });
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
+// if the request has not api within it, then it indicates that, its used for the views
 app.use('/', viewRouter);
 
 app.all('*', (req, res, next) => {
-  next(new AppError(404, `the route ${req.originalUrl} is not defined`));
+  res.status(404).render('errorTemplate', () => {
+    next(new AppError(404, `the route ${req.originalUrl} is not defined`));
+  });
 });
 
 //global error handler

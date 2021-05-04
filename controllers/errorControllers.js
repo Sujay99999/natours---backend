@@ -30,31 +30,60 @@ module.exports = (err, req, res, next) => {
     err.status = 'fail';
   }
 
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === 'development') {
+    // In development, the client needs to know all the things possible about the error,
+    //whether its operational or not operational i.e we include the stack trace also
+
+    // if the error is a not a api call, then we can render the 404 template
+    if (req.originalUrl.startsWith('/api')) {
+      res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message,
+        name: err.name,
+        error: err,
+        stack: err.stack,
+      });
+    } else {
+      res.status(err.statusCode).render('errorTemplate', {
+        err,
+      });
+    }
+  } else {
+    //BUG: i dont know why, (process.env.NODE_ENV === 'production') is false
     // In production, the client needs to more info about the error if its operational,
     //but if the error is not operational, the client must recieve a generic message only
-    console.log(err);
-    // if (err.isOperational) {
-    res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-    });
-    // } else {
-    //   console.error('The programming error is: ', err);
-    //   res.status(err.statusCode).json({
-    //     status: err.status,
-    //     message: 'Something went wrong, Its an programmer error',
-    //   });
-    // }
-  } else if (process.env.NODE_ENV === 'development') {
-    // In development, the client needs to know all the things possible about the error,
-    //whether its operational or not operational
-    res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-      name: err.name,
-      error: err,
-      stack: err.stack,
-    });
+
+    // API
+    if (req.originalUrl.startsWith('/api')) {
+      if (err.isOperational) {
+        console.log(err);
+        res.status(err.statusCode).json({
+          status: err.status,
+          message: err.message,
+        });
+      } else {
+        console.error('The programming error is: ', err);
+        res.status(err.statusCode).json({
+          status: err.status,
+          message: 'Something went wrong, Its an programmer error',
+        });
+      }
+    } else {
+      // VIEW
+      if (err.isOperational) {
+        console.log(err);
+        res.status(err.statusCode).render('errorTemplate', {
+          err,
+        });
+      } else {
+        console.error('The programming error is: ', err);
+        // we need to create a new error with the generic error message
+        const error = { ...err };
+        error.message = 'Something went wrong, Its an programmer error';
+        res.status(err.statusCode).render('errorTemplate', {
+          error,
+        });
+      }
+    }
   }
 };

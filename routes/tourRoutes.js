@@ -38,6 +38,8 @@ router
   .patch(
     authController.verify,
     authController.authorize(['admin', 'lead-guide']),
+    tourController.uploadTourImages,
+    tourController.resizeTourImages,
     tourController.updateTour
   )
   //we need to autthenticate and also authorize the user for this route action
