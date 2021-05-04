@@ -60,7 +60,7 @@ reviewSchema.statics.calcAvgRating = async function (tourId) {
 
   // update the tour instance with the ew stats
   const updatedTour = await Tour.findByIdAndUpdate(tourId, {
-    ratingsAverage: stats[0].avgRating,
+    ratingsAverage: stats[0].avgRating.toFixed(2),
     ratingsQuantity: stats[0].countRating,
   });
   if (!updatedTour) throw new AppError(404, 'Tour has not been able to update');
