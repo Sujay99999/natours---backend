@@ -52,6 +52,7 @@ const createBookingCheckout = async (session) => {
   const price = session.display_items[0].amount / 100;
 
   const createdBooking = await Booking.create({ userRef, tourRef, price });
+  console.log(createdBooking);
 };
 
 exports.stripeWebhookCheckout = (req, res, next) => {

@@ -40,10 +40,10 @@ app.set('views', path.join(__dirname, 'views'));
 
 //General middleware functions
 //Logging middleware function
-// if (process.env.NODE_ENV === 'development') {
-//   app.use(morgan('dev'));
-// }
-app.use(morgan('dev'));
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+// app.use(morgan('dev'));
 
 //Adding CORS support
 app.use(cors());
