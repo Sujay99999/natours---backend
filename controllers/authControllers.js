@@ -23,11 +23,8 @@ const sendBackToken = (res, statusCode, token, user) => {
   const cookieOptions = {
     expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRY_TIME),
     httpOnly: true,
+    secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
   };
-
-  if (process.env.NODE_ENV === 'production') {
-    cookieOptions.secure = true;
-  }
 
   //we create a cookie and send it to the browser form the server as a response
   res.cookie('jwtToken', token, cookieOptions);

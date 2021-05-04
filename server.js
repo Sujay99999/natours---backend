@@ -42,6 +42,7 @@ const server = app.listen(port, () => {
   console.log(`the port ${port} is listening`);
 });
 
+// Handling Unhandled Rejections
 process.on('unhandledRejection', (err) => {
   console.log('Shutting down the server');
   console.log(err.name, err.message);
@@ -49,5 +50,13 @@ process.on('unhandledRejection', (err) => {
   server.close(() => {
     console.log('Shutting down the application');
     process.exit(1);
+  });
+});
+
+// Handling Sigterm signals
+process.on('SIGTERM', () => {
+  console.log('SIGTERM recieved');
+  server.close(() => {
+    console.log('Terminating the application');
   });
 });

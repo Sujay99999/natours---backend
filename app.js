@@ -26,6 +26,9 @@ const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
 
+// Trusting proxies
+app.enable('trust proxy');
+
 //This middleware is used to set the templating engine to PUG
 app.set('view engine', 'pug');
 //This sets the views that are need to be rendered to the views folder (i.e. MVC architecture)
