@@ -5,7 +5,7 @@ const authController = require('../controllers/authControllers');
 const router = express.Router();
 
 //This is th main page of the website, that gives all the tours as a display
-
+router.use(viewController.alerts);
 router.get('/', authController.isLoggedIn, viewController.getOverview);
 router.get(
   '/tours/:tourNameSimplified',

@@ -21,12 +21,16 @@ exports.createCheckoutSession = async (req, res, next) => {
           currency: 'inr',
           quantity: 1,
           images: [
-            `${req.protocol}://${req.get('host')}/img/tours/${tour.imageCover}`,
+            `${req.protocol}://${req.get('host')}/img/tours/${
+              checkoutTour.imageCover
+            }`,
           ],
         },
       ],
       mode: 'payment',
-      success_url: `${req.protocol}://${req.get('host')}/`,
+      success_url: `${req.protocol}://${req.get(
+        'host'
+      )}/bookings?alert=booking`,
       cancel_url: `${req.protocol}://${req.get(
         'host'
       )}/tours/${checkoutTour.name.toLowerCase().split(' ').join('-')}`,
